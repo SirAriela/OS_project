@@ -64,17 +64,17 @@ coverage-run:
 	@./lf_server 8080 & srv=$$!; \
 	sleep 3; \
 	echo "Sending test requests to generate server coverage..."; \
-	echo "-e 6 -v 5 -s 15 -a MST_WEIGHT" | ./tcp_client 127.0.0.1 8080; \
+	echo "-e 6 -v 5 -s 15" | ./tcp_client 127.0.0.1 8080; \
 	sleep 1; \
-	echo "-e 8 -v 6 -s 20 -a SCC" | ./tcp_client 127.0.0.1 8080; \
+	echo "-e 8 -v 6 -s 20" | ./tcp_client 127.0.0.1 8080; \
 	sleep 1; \
-	echo "-e 10 -v 7 -s 25 -a MAX_FLOW" | ./tcp_client 127.0.0.1 8080; \
+	echo "-e 10 -v 7 -s 25" | ./tcp_client 127.0.0.1 8080; \
 	sleep 1; \
-	echo "-e 12 -v 8 -s 30 -a MAX_CLIQUE" | ./tcp_client 127.0.0.1 8080; \
+	echo "-e 12 -v 8 -s 30" | ./tcp_client 127.0.0.1 8080; \
 	sleep 1; \
 	echo "-e 4 -v 3 -s 10" | ./tcp_client 127.0.0.1 8080; \
 	sleep 1; \
-	echo "-e 15 -v 10 -s 50 -a MST_WEIGHT" | ./tcp_client 127.0.0.1 8080; \
+	echo "-e 15 -v 10 -s 50" | ./tcp_client 127.0.0.1 8080; \
 	sleep 1; \
 	echo "Testing invalid requests for error handling coverage..."; \
 	echo "invalid_request" | ./tcp_client 127.0.0.1 8080; \
@@ -94,16 +94,12 @@ coverage-run:
 	sleep 1; \
 	echo "-e 5 -v 3 -s -5" | ./tcp_client 127.0.0.1 8080; \
 	sleep 1; \
-	echo "-e 5 -v 3 -s 5 -a INVALID_ALGO" | ./tcp_client 127.0.0.1 8080; \
-	sleep 1; \
-	echo "-e 5 -v 3 -s 5 -a" | ./tcp_client 127.0.0.1 8080; \
-	sleep 1; \
-	echo "-e 5 -v 3 -s 5 -a MST_WEIGHT -extra_param" | ./tcp_client 127.0.0.1 8080; \
+	echo "-e 5 -v 3 -s 5 -extra_param" | ./tcp_client 127.0.0.1 8080; \
 	sleep 1; \
 	echo "Testing concurrent requests for thread coverage..."; \
-	echo "-e 6 -v 4 -s 10 -a MST_WEIGHT" | ./tcp_client 127.0.0.1 8080 & \
-	echo "-e 7 -v 5 -s 15 -a SCC" | ./tcp_client 127.0.0.1 8080 & \
-	echo "-e 8 -v 6 -s 20 -a MAX_FLOW" | ./tcp_client 127.0.0.1 8080 & \
+	echo "-e 6 -v 4 -s 10" | ./tcp_client 127.0.0.1 8080 & \
+	echo "-e 7 -v 5 -s 15" | ./tcp_client 127.0.0.1 8080 & \
+	echo "-e 8 -v 6 -s 20" | ./tcp_client 127.0.0.1 8080 & \
 	sleep 3; \
 	echo "Stopping server..."; \
 	kill -INT $$srv 2>/dev/null || true; \
@@ -181,7 +177,7 @@ VG_CACHEGRIND_FLAGS ?= --tool=cachegrind --verbose
 # Test configuration
 HOST     ?= 127.0.0.1
 PORT     ?= 8080
-REQUEST  ?= -e 8 -v 6 -s 42 -a MST_WEIGHT
+REQUEST  ?= -e 8 -v 6 -s 42
 
 # ---------- Valgrind Analysis ----------
 # Memory check analysis
@@ -272,8 +268,8 @@ test-concurrent: $(SERVER_TARGET) $(CLIENT_TARGET)
 	sleep 2; \
 	echo "Sending 3 concurrent requests"; \
 	(echo "-e 5 -v 4 -s 10" | ./$(CLIENT_TARGET) $(HOST) $(PORT)) & \
-	(echo "-e 8 -v 6 -s 20 -a MST_WEIGHT" | ./$(CLIENT_TARGET) $(HOST) $(PORT)) & \
-	(echo "-e 12 -v 8 -s 30 -a SCC" | ./$(CLIENT_TARGET) $(HOST) $(PORT)) & \
+	(echo "-e 8 -v 6 -s 20" | ./$(CLIENT_TARGET) $(HOST) $(PORT)) & \
+	(echo "-e 12 -v 8 -s 30" | ./$(CLIENT_TARGET) $(HOST) $(PORT)) & \
 	wait; \
 	sleep 1; \
 	if kill -0 $$srv 2>/dev/null; then \
@@ -289,8 +285,8 @@ valgrind-concurrent: $(SERVER_TARGET) $(CLIENT_TARGET)
 	sleep 3; \
 	echo "Sending 3 concurrent requests under analysis"; \
 	(echo "-e 5 -v 4 -s 10" | ./$(CLIENT_TARGET) $(HOST) $(PORT)) & \
-	(echo "-e 8 -v 6 -s 20 -a MST_WEIGHT" | ./$(CLIENT_TARGET) $(HOST) $(PORT)) & \
-	(echo "-e 12 -v 8 -s 30 -a SCC" | ./$(CLIENT_TARGET) $(HOST) $(PORT)) & \
+	(echo "-e 8 -v 6 -s 20" | ./$(CLIENT_TARGET) $(HOST) $(PORT)) & \
+	(echo "-e 12 -v 8 -s 30" | ./$(CLIENT_TARGET) $(HOST) $(PORT)) & \
 	wait; \
 	sleep 2; \
 	if kill -0 $$srv 2>/dev/null; then \

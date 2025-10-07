@@ -58,11 +58,11 @@ SERVER_PID=$!
 sleep 3
 
 echo "Sending test requests to generate server coverage..."
-echo "-e 6 -v 5 -s 15 -a MST_WEIGHT" | ./tcp_client 127.0.0.1 8080
+echo "-e 6 -v 5 -s 15" | ./tcp_client 127.0.0.1 8080
 sleep 1
-echo "-e 8 -v 6 -s 20 -a SCC" | ./tcp_client 127.0.0.1 8080
+echo "-e 8 -v 6 -s 20" | ./tcp_client 127.0.0.1 8080
 sleep 1
-echo "-e 10 -v 7 -s 25 -a MAX_FLOW" | ./tcp_client 127.0.0.1 8080
+echo "-e 10 -v 7 -s 25" | ./tcp_client 127.0.0.1 8080
 sleep 1
 
 echo "Stopping server..."

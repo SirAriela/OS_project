@@ -125,7 +125,8 @@ int main(int argc, char *argv[])
             quick_tv.tv_usec = 0; // לא מחכים בכלל
             
             if (select(STDIN_FILENO + 1, &stdin_fds, NULL, NULL, &quick_tv) > 0) {
-                std::cout << "\nEnter graph request (e.g., '-e 5 -v 4') or 'quit' to exit: ";
+                std::cout << "\nEnter graph parameters (e.g., '-e 5 -v 4 -s 43') or 'quit' to exit: ";
+                std::cout << "\nServer will run ALL algorithms on the generated graph." << std::endl;
                 std::getline(std::cin, message);
                 
                 if (message == "quit") {
@@ -142,7 +143,7 @@ int main(int argc, char *argv[])
                     break;
                 }
                 
-                std::cout << "graph request sent successfully!" << std::endl;
+                std::cout << "Graph parameters sent successfully! Server will run all algorithms..." << std::endl;
             }
         }
     }

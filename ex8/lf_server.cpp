@@ -85,9 +85,8 @@ void analyzeGraph(const graph::Graph& g) {
 
 std::string processGraphRequest(const std::string &request)
 {
-    // Parse request like "-e 5 -v 4 -s 43 -a MST_WEIGHT"
+    // Parse request like "-e 5 -v 4 -s 43" (no algorithm parameter needed)
     int edges = -1, vertices = -1, seed = -1;
-    std::string algorithm = "EULER"; // Default to Euler circuit
 
     // Parse parameters
     size_t pos = request.find("-e ");
@@ -108,16 +107,10 @@ std::string processGraphRequest(const std::string &request)
         seed = std::stoi(request.substr(pos + 3));
     }
 
-    pos = request.find("-a ");
-    if (pos != std::string::npos)
-    {
-        algorithm = request.substr(pos + 3);
-    }
-
     if (edges < 0 || vertices <= 0)
     {
-        return "ERROR: Invalid parameters. Use format: -e <edges> -v <vertices> -s <seed> [-a <algorithm>]\n"
-               "Available algorithms: EULER, MST_WEIGHT, SCC, MAX_FLOW, MAX_CLIQUE";
+        return "ERROR: Invalid parameters. Use format: -e <edges> -v <vertices> -s <seed>\n"
+               "Server will run all algorithms on the generated graph.";
     }
 
     try
@@ -125,63 +118,72 @@ std::string processGraphRequest(const std::string &request)
         // Generate random graph
         graph::Graph graph = graph::Graph::generateRandomGraph(vertices, edges, seed);
         
-        std::string result;
+        std::string result = "=== COMPLETE GRAPH ANALYSIS ===\n";
+        result += "Graph Parameters:\n";
+        result += "Vertices: " + std::to_string(vertices) + "\n";
+        result += "Edges: " + std::to_string(edges) + "\n";
+        result += "Seed: " + std::to_string(seed) + "\n\n";
         
-        if (algorithm == "EULER" || algorithm == "EULER_CIRCUIT") {
-            // Original Euler circuit logic
-            if (graph.hasEulerCircuit())
+        // Run all algorithms on the same graph
+        
+        // 1. Euler Circuit Analysis
+        result += "=== 1. EULER CIRCUIT ANALYSIS ===\n";
+        if (graph.hasEulerCircuit())
+        {
+            std::vector<int> circuit = graph.findEulerCircuit();
+            result += "SUCCESS: Graph has Euler circuit!\n";
+            result += "Circuit: ";
+            for (size_t i = 0; i < circuit.size(); ++i)
             {
-                std::vector<int> circuit = graph.findEulerCircuit();
-                result = "SUCCESS: Graph has Euler circuit!\n";
-                result += "Vertices: " + std::to_string(vertices) + "\n";
-                result += "Edges: " + std::to_string(edges) + "\n";
-                result += "Circuit: ";
-                for (size_t i = 0; i < circuit.size(); ++i)
-                {
-                    if (i > 0)
-                        result += " -> ";
-                    result += std::to_string(circuit[i]);
-                }
-                analyzeGraph(graph);
+                if (i > 0)
+                    result += " -> ";
+                result += std::to_string(circuit[i]);
             }
-            else
-            {
-                result = "RESULT: Graph does NOT have Euler circuit\n";
-                result += "Vertices: " + std::to_string(vertices) + "\n";
-                result += "Edges: " + std::to_string(edges) + "\n";
-                result += "Reason: Graph is not connected or has odd-degree vertices";
-                analyzeGraph(graph);
-            }
-        } else {
-            graph::AlgorithmFactory::AlgorithmType algoType;
-            
-            if (algorithm == "MST_WEIGHT") {
-                algoType = graph::AlgorithmFactory::AlgorithmType::MST_WEIGHT;
-            } else if (algorithm == "SCC") {
-                algoType = graph::AlgorithmFactory::AlgorithmType::SCC;
-            } else if (algorithm == "MAX_FLOW") {
-                algoType = graph::AlgorithmFactory::AlgorithmType::MAX_FLOW;
-            } else if (algorithm == "MAX_CLIQUE") {
-                algoType = graph::AlgorithmFactory::AlgorithmType::MAX_CLIQUE;
-            } else {
-                return "ERROR: Unknown algorithm '" + algorithm + "'. Available: EULER, MST_WEIGHT, SCC, MAX_FLOW, MAX_CLIQUE";
-            }
-            
-            auto algo = graph::AlgorithmFactory::createAlgorithm(algoType);
-            if (!algo) {
-                return "ERROR: Failed to create algorithm instance";
-            }
-            
-            result = "ALGORITHM: " + algo->getName() + "\n";
-            result += "Vertices: " + std::to_string(vertices) + "\n";
-            result += "Edges: " + std::to_string(edges) + "\n";
-            result += "Seed: " + std::to_string(seed) + "\n";
-            result += "Result:\n";
-            result += algo->execute(graph);
-
-            // Display graph info
-            analyzeGraph(graph);
+            result += "\n";
         }
+        else
+        {
+            result += "RESULT: Graph does NOT have Euler circuit\n";
+            result += "Reason: Graph is not connected or has odd-degree vertices\n";
+        }
+        result += "\n";
+        
+        // 2. MST Weight Algorithm
+        result += "=== 2. MST WEIGHT ANALYSIS ===\n";
+        auto mstAlgo = graph::AlgorithmFactory::createAlgorithm(graph::AlgorithmFactory::AlgorithmType::MST_WEIGHT);
+        if (mstAlgo) {
+            result += mstAlgo->execute(graph) + "\n";
+        }
+        result += "\n";
+        
+        // 3. Strongly Connected Components
+        result += "=== 3. STRONGLY CONNECTED COMPONENTS ===\n";
+        auto sccAlgo = graph::AlgorithmFactory::createAlgorithm(graph::AlgorithmFactory::AlgorithmType::SCC);
+        if (sccAlgo) {
+            result += sccAlgo->execute(graph) + "\n";
+        }
+        result += "\n";
+        
+        // 4. Max Flow Algorithm
+        result += "=== 4. MAX FLOW ANALYSIS ===\n";
+        auto maxFlowAlgo = graph::AlgorithmFactory::createAlgorithm(graph::AlgorithmFactory::AlgorithmType::MAX_FLOW);
+        if (maxFlowAlgo) {
+            result += maxFlowAlgo->execute(graph) + "\n";
+        }
+        result += "\n";
+        
+        // 5. Max Clique Algorithm
+        result += "=== 5. MAX CLIQUE ANALYSIS ===\n";
+        auto maxCliqueAlgo = graph::AlgorithmFactory::createAlgorithm(graph::AlgorithmFactory::AlgorithmType::MAX_CLIQUE);
+        if (maxCliqueAlgo) {
+            result += maxCliqueAlgo->execute(graph) + "\n";
+        }
+        result += "\n";
+        
+        result += "=== ANALYSIS COMPLETE ===\n";
+        
+        // Display detailed graph info on server console
+        analyzeGraph(graph);
         
         return result;
     }

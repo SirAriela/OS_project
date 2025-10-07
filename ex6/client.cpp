@@ -43,7 +43,7 @@ int main(int argc, char *argv[])
     server_addr.sin_family = AF_INET;
     server_addr.sin_port = htons(port);
     
-    // בדיקה אם זה localhost או כתובת IP
+
     if (server_ip == "localhost" || server_ip == "127.0.0.1")
     {
         server_addr.sin_addr.s_addr = htonl(INADDR_LOOPBACK);
@@ -55,7 +55,7 @@ int main(int argc, char *argv[])
         return 1;
     }
 
-    // חיבור לשרת
+    // conect to sever
     if (connect(sock_fd, (struct sockaddr*)&server_addr, sizeof(server_addr)) < 0)
     {
         perror("connect");
@@ -69,16 +69,16 @@ int main(int argc, char *argv[])
     std::cout << "Type messages to send to server, or 'quit' to exit." << std::endl;
     std::cout << "Note: Server shutdown messages will be detected automatically." << std::endl;
 
-    // לולאה לשליחת הודעות
+    // sending messages loop
     std::string message;
     while (true)
     {
-        // בדיקה מהירה אם יש הודעות מהשרת (timeout קצר מאוד)
+        // small timeout to check if there is new message
         fd_set readfds;
         FD_ZERO(&readfds);
         FD_SET(sock_fd, &readfds);
         
-        // timeout קצר מאוד - 10 מילישניות
+        // timeout 
         struct timeval tv;
         tv.tv_sec = 0;
         tv.tv_usec = 10000; // 10ms
@@ -90,7 +90,7 @@ int main(int argc, char *argv[])
             break;
         }
         
-        // יש הודעות מהשרת - נטפל בהן מיד!
+        // there is message need handeling
         if (activity > 0 && FD_ISSET(sock_fd, &readfds)) {
             char buffer[1024];
             ssize_t bytes_received = recv(sock_fd, buffer, sizeof(buffer) - 1, 0);
@@ -99,7 +99,7 @@ int main(int argc, char *argv[])
                 buffer[bytes_received] = '\0';
                 std::cout << "\nServer response: " << buffer << std::endl;
                 
-                // בדיקה אם השרת שולח הודעת סגירה
+                // check if server sent closing message
                 if (std::string(buffer) == "SERVER_SHUTDOWN") {
                     std::cout << "Server is shutting down, disconnecting..." << std::endl;
                     break;
@@ -113,9 +113,8 @@ int main(int argc, char *argv[])
             }
         }
         
-        // בדיקה מהירה אם יש קלט מהמקלדת
-        if (activity == 0) { // timeout - אין הודעות מהשרת
-            // בדיקה מהירה אם יש קלט מהמקלדת
+        //check is there input drom keyboard
+        if (activity == 0) { 
             fd_set stdin_fds;
             FD_ZERO(&stdin_fds);
             FD_SET(STDIN_FILENO, &stdin_fds);
@@ -136,7 +135,7 @@ int main(int argc, char *argv[])
                     continue;
                 }
                 
-                // שליחת ההודעה לשרת
+                // send to server a message
                 if (send(sock_fd, message.c_str(), message.length(), 0) < 0) {
                     perror("send");
                     break;
